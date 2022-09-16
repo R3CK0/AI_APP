@@ -9,6 +9,7 @@ if __name__ == '__main__':
     # Niveau 0 - sans obstacle - 'assets/mazeMedium_0'
     # Niveau 1 - avec obstacles - 'assets/mazeMedium_1'
     # Niveau 2 - avec obstacles et ennemis - 'assets/mazeMedium_2'
+    # MazeLarge_3
     theAPP = App('assets/mazeMedium_3')
     theAPP.on_execute()
 

@@ -29,6 +29,7 @@
 # Code for Artificial Intelligence module
 # Adapted by Audrey Corbeil Therrien for Artificial Intelligence module
 import numpy as np
+from Constants import *
 
 class tempclass:
     def __init__(self,parameters):
@@ -95,8 +96,7 @@ class Genetic:
         # Record the best individual and average of the current generation
         self.fitness=[]
         for individual in self.cvalues:
-            # self.fitness.append(self.fit_fun.mock_fight(tempclass(individual*1000000-2000000))[1])
-            self.fitness.append(self.fit_fun.mock_fight(tempclass(individual*2000000-1000000))[1])
+            self.fitness.append(self.fit_fun.mock_fight(tempclass(individual*(2*MAX_ATTRIBUTE)-MAX_ATTRIBUTE))[1])
 
         if np.max(self.fitness) > self.bestIndividualFitness:
             #keep second best individual
@@ -106,7 +106,8 @@ class Genetic:
         self.overallMaxFitnessRecord[self.current_gen] = self.bestIndividualFitness
         self.avgMaxFitnessRecord[self.current_gen] = np.mean(self.fitness)
 
-        bestindices=np.argpartition(self.fitness,-1)[-1:]
+        to_retain=int(len(self.population)*0.05)
+        bestindices=np.argpartition(self.fitness,-to_retain)[-to_retain:]
         self.bestIndividuals=self.population[bestindices]
 
 
@@ -123,7 +124,7 @@ class Genetic:
         # TODO : Decode individual for better readability
         list=[]
         for atom in np.array_split(self.bestIndividual, self.num_params):
-            list.append(bin2ufloat(atom,self.nbits)[0]*2000000-1000000)
+            list.append(bin2ufloat(atom,self.nbits)[0]*(2*MAX_ATTRIBUTE)-MAX_ATTRIBUTE)
         return list
 
     def encode_individuals(self):
@@ -151,7 +152,7 @@ class Genetic:
 
         idx1 = np.random.choice(self.pop_size,int(self.pop_size/2),p=wheel)
         idx2 = np.random.choice(self.pop_size,int(self.pop_size/2), p=wheel)
-        # print(wheel)
+
         return [self.population[idx1, :], self.population[idx2, :]]
 
     def doCrossover(self, pairs):
@@ -187,9 +188,6 @@ class Genetic:
         self.doMutation()
         self.current_gen += 1
 
-    def printpop(self,oldpop):
-        print(np.array_equal(self.population,oldpop))
-
 def ufloat2bin(cvalue, nbits):
     # Convert floating point values into a binary vector
     if nbits > 64:
@@ -218,7 +216,7 @@ def bin2ufloat(bvalue, nbits):
 def trainGA(monster):
     # Set parameters for GA
     numparams = 12
-    nbits = 16
+    nbits = 8
     popsize = 40
 
     # Init GA
@@ -227,7 +225,7 @@ def trainGA(monster):
 
     ga_sim.set_fit_fun(monster)
 
-    numGenerations = 100
+    numGenerations = 1000
     mutationProb = 0.01
     crossoverProb = 0.8
     ga_sim.set_sim_parameters(numGenerations, mutationProb, crossoverProb)
@@ -239,4 +237,36 @@ def trainGA(monster):
         ga_sim.new_gen()
     print(ga_sim.current_gen)
     return ga_sim.get_best_individual()
+
+def testGA(monster):
+    # Set parameters for GA
+    numparams = 12
+    nbits = 8
+    popsize = 40
+
+    # Init GA
+    ga_sim = Genetic(numparams, popsize, nbits)
+
+    ga_sim.set_fit_fun(monster)
+
+    numGenerations = 100
+    mutationProb = 0.01
+    crossoverProb = 0.8
+    ga_sim.set_sim_parameters(numGenerations, mutationProb, crossoverProb)
+    ga_sim.set_crossover_modulo(nbits)
+
+    #Run fight simulation 100 times verify if it always converges
+    import time
+    start = time.time()
+    num_gens=np.zeros(100000)
+    for i in range(100000):
+        ga_sim.init_pop()
+        while ga_sim.bestIndividualFitness < 3.5 and ga_sim.current_gen != numGenerations:
+            ga_sim.decode_individuals()
+            ga_sim.eval_fit()
+            ga_sim.new_gen()
+        num_gens[i]=ga_sim.current_gen
+    end = time.time()
+    print('Max number of gens',num_gens.max())
+    print("Time elapsed:", end - start)
 

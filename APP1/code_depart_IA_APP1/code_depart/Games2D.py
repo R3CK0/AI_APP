@@ -68,9 +68,12 @@ class App:
 
         if keys[K_m]:
             for monster in self.maze.monsterList:
+
                 results=genetic.trainGA(monster)
                 self.player.set_attributes(results)
-                print(monster.mock_fight(self.player))
+                # print(monster.mock_fight(self.player))
+                genetic.testGA(monster)
+
             import time
             time.sleep(1)
             # returns the number of rounds you win against the monster
@@ -78,8 +81,25 @@ class App:
 
         if (keys[K_ESCAPE]):
             self._running = False
-        if (keys[K_t]):
-            print()
+
+        if keys[K_t]:
+            # self.fuzz.input['direction'] = -0.25 #up: -0.75,down -0.25, left 0.25, right 0.75
+            # self.fuzz.input['y_ob'] = 0.0
+            for i in range(1):
+                [up, down, left, right] = self.perception()
+                self.fuzz.input['up_p'] = up - 20
+                self.fuzz.input['down_p'] = down + 40
+                self.fuzz.input['left_p'] = left
+                self.fuzz.input['right_p'] = right
+                self.fuzz.compute()
+
+                # TODO: get the output from the fuzzy system
+                move = self.fuzz.output['move'] * 10
+                # movey = self.fuzz.output['move_y']*10
+                # print(movex,movey)
+                self.on_AI_input(move)
+                # self.on_AI_input(movey, 'y')
+                self.on_render()
 
     # FONCTION À Ajuster selon votre format d'instruction
     def on_AI_input(self, instruction):
