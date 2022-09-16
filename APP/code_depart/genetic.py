@@ -269,4 +269,5 @@ def testGA(monster):
     end = time.time()
     print('Max number of gens',num_gens.max())
     print("Time elapsed:", end - start)
+    print()
 
